@@ -13,9 +13,7 @@ from util import json_serialize
 import attr
 import structlog
 from scapy.utils import wrpcap
-
 log = structlog.get_logger()
-
 class IntellivueInterface(DatagramProtocol):
     """
     Handles communication with a Philips IntelliVue
@@ -215,6 +213,26 @@ class IntellivueInterface(DatagramProtocol):
         pollAction /= packets.PollMdibDataReqExt(
             polled_obj_type=packets.TYPE(
                 partition=packets.NOM_PART_OBJ,
+                code=packets.NOM_MOC_PT_DEMOG,  # Numerics, i.e. numbers about attached patient
+            ),
+            polled_attr_grp=0,  # Show all data
+        )
+
+        # pollAction.show2()
+
+        self.transport.write(str(pollAction), addr)
+
+    def old_pollForData(self, addr):
+        pollAction = packets.SPpdu()  # PIPG-55
+        pollAction /= packets.ROapdus(ro_type=packets.ROIV_APDU)
+        pollAction /= packets.ROIVapdu(command_type=packets.CMD_CONFIRMED_ACTION)
+        pollAction /= packets.ActionArgument(
+            managed_object=packets.ManagedObjectId(m_obj_class=packets.NOM_MOC_VMS_MDS),
+            action_type=packets.NOM_ACT_POLL_MDIB_DATA_EXT,
+        )
+        pollAction /= packets.PollMdibDataReqExt(
+            polled_obj_type=packets.TYPE(
+                partition=packets.NOM_PART_OBJ,
                 code=packets.NOM_MOC_VMO_METRIC_NU,  # Numerics, i.e. numbers about attached patient
             ),
             polled_attr_grp=packets.NOM_ATTR_GRP_METRIC_VAL_OBS,  # Observed values of the "object" (patient)
@@ -243,28 +261,47 @@ class IntellivueInterface(DatagramProtocol):
 
     def handleResult(self, host, message):
         """
+        We have PollInfo! Decide what to do with it based on polled_obj_type
+        """
+
+        for single_context_poll in message[packets.PollInfoList].value:
+            for observation_poll in single_context_poll.value:
+                for attribute_list in observation_poll.attributes:
+                    obj_type = message[packets.PollMdibDataReplyExt].polled_obj_type
+                    if obj_type.code == packets.NOM_MOC_PT_DEMOG:
+                        self.handlePatientDemogResult(host, attribute_list)
+                    elif obj_type.code == packets.NOM_MOC_VMO_METRIC_NU:
+                        self.handleNumericResult(host, attribute_list)
+
+    def handlePatientDemogResult(self, host, attribute_list):
+        """
+        We have Patient Data! Send appropriate webhooks
+        """
+
+        for attribute in attribute_list.value:
+            attribute.show()
+
+    def handleNumericsResult(self, host,  attribute_list):
+        """
         We have results! Send appropriate webhooks
         """
 
         observations = []
-        for single_context_poll in message[packets.PollInfoList].value:
-            for observation_poll in single_context_poll.value:
-                for attribute_list in observation_poll.attributes:
-                    for attribute in attribute_list.value:
-                        if attribute.attribute_id == packets.NOM_ATTR_NU_VAL_OBS:
-                            obsValue = attribute[packets.NuObsValue]
-                            if obsValue.measurementIsValid():
-                                states = []
-                                for state in packets.ENUM_MEASUREMENT_STATE.keys():
-                                    if obsValue.state & state:
-                                        states.append(packets.ENUM_MEASUREMENT_STATE[state])
-                                observation = api.Observation(
-                                    physio_id=packets.ENUM_IDENTIFIERS[obsValue.physio_id],
-                                    state=states,
-                                    unit_code=packets.ENUM_IDENTIFIERS[obsValue.unit_code],
-                                    value=obsValue.value,
-                                )
-                                observations.append(observation)
+        for attribute in attribute_list.value:
+            if attribute.attribute_id == packets.NOM_ATTR_NU_VAL_OBS:
+                obsValue = attribute[packets.NuObsValue]
+                if obsValue.measurementIsValid():
+                    states = []
+                    for state in packets.ENUM_MEASUREMENT_STATE.keys():
+                        if obsValue.state & state:
+                            states.append(packets.ENUM_MEASUREMENT_STATE[state])
+                    observation = api.Observation(
+                        physio_id=packets.ENUM_IDENTIFIERS[obsValue.physio_id],
+                        state=states,
+                        unit_code=packets.ENUM_IDENTIFIERS[obsValue.unit_code],
+                        value=obsValue.value,
+                    )
+                    observations.append(observation)
 
         if len(observations) == 0:
             log.debug("No valid measurements to send")

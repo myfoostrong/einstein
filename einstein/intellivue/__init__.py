@@ -21,6 +21,7 @@ PORT_PROTOCOL = 24105  # PIPG-29
 
 # TODO Relocate / flesh these out
 NOM_MOC_VMO_METRIC_NU = 6
+NOM_MOC_PT_DEMOG = 42
 NOM_MOC_VMS_MDS = 33
 
 bind_layers(Nomenclature, ROapdus)
@@ -46,6 +47,20 @@ bind_layers(AVAType, AbsoluteTime, attribute_id=NOM_ATTR_TIME_STAMP_ABS)
 bind_layers(AVAType, IpAddressInfo, attribute_id=NOM_ATTR_NET_ADDR_INFO)
 bind_layers(AVAType, PollProfileSupport, attribute_id=NOM_POLL_PROFILE_SUPPORT)
 bind_layers(AVAType, PollProfileExt, attribute_id=NOM_ATTR_POLL_PROFILE_EXT)
+
+bind_layers(AVAType, AbsoluteTime, attribute_id=NOM_ATTR_PT_DOB)
+bind_layers(AVAType, PatientType, attribute_id=NOM_ATTR_PT_TYPE)
+bind_layers(AVAType, String, attribute_id=NOM_ATTR_PT_NAME_GIVEN)
+bind_layers(AVAType, String, attribute_id=NOM_ATTR_PT_NAME_FAMILY)
+bind_layers(AVAType, String, attribute_id=NOM_ATTR_PT_ID)
+bind_layers(AVAType, String, attribute_id=NOM_ATTR_PT_SEX)
+bind_layers(AVAType, PatMeasure, attribute_id=NOM_ATTR_PT_AGE)
+bind_layers(AVAType, PatMeasure, attribute_id=NOM_ATTR_PT_WEIGHT)
+bind_layers(AVAType, PatMeasure, attribute_id=NOM_ATTR_PT_HEIGHT)
+bind_layers(AVAType, PatMeasure, attribute_id=NOM_ATTR_PT_BSA)
+bind_layers(AVAType, String, attribute_id=NOM_ATTR_PT_NOTES1)
+bind_layers(AVAType, String, attribute_id=NOM_ATTR_PT_NOTES2)
+bind_layers(AVAType, PatDmgState, attribute_id=NOM_ATTR_PT_DEMOG_ST)
 
 bind_layers(SessionHeader, AssocReqSessionData, type=CN_SPDU_SI)
 bind_layers(AssocReqSessionData, AssocReqPresentationHeaderHeader)

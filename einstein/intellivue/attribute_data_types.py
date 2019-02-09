@@ -43,6 +43,7 @@ ENUM_MEASUREMENT_STATE = {
     MSMT_STATE_AL_INHIBITED: "MSMT_STATE_AL_INHIBITED",
 }
 
+
 def MeasurementStateField(name, default):  # PIPG-76
     flags = [v for (_, v) in sorted(ENUM_MEASUREMENT_STATE.items())]
     return FlagsField(name, default, 16, flags)
@@ -70,4 +71,26 @@ class IpAddressInfo(Packet):  # PIPG-109
         MACField("mac_address", 0),
         IPField("ip_address", 0),
         IPField("subnet_mask", 0),
+    ]
+
+
+class PatientType(Packet):
+    name = "PatientType"
+    fields_desc = [
+        ShortEnumField("type", 0, {0: "PAT_TYPE_UNSPECIFIED", 1: "ADULT", 2: "PEDIATRIC", 3: "NEONATAL"})
+    ]
+
+
+class PatMeasure(Packet):
+    name = "PatMeasure"
+    fields_desc = [
+        FLOATTypeField("value", 0),
+        OIDTypeField("m_unit", 0)
+    ]
+
+
+class PatDmgState(Packet):
+    name = "PatDmgState"
+    fields_desc = [
+        ShortEnumField("state", 0, {0: "EMPTY", 1: "PRE_ADMITTED", 2: "ADMITTED", 8: "DISCHARGED"})
     ]
