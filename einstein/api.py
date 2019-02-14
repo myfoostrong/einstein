@@ -19,6 +19,23 @@ class Observation(object):
     unit_code = attr.ib(default="")
     value = attr.ib(default=0)
 
+@attr.s
+class Patient(object):
+    dob = attr.ib(default="")
+    patient_type = attr.ib(default="")
+    bsa = attr.ib(default="")
+    admit_state = attr.ib(default="")
+    patient_id = attr.ib(default="")
+    family_name = attr.ib(default="")
+    given_name = attr.ib(default="")
+    sex = attr.ib(default="")
+    age = attr.ib(default="")
+    height = attr.ib(default="")
+    weight = attr.ib(default="")
+    notes1 = attr.ib(default="")
+    notes2 = attr.ib(default="")
+    bsa_formula = attr.ib(default="")
+
 
 @attr.s
 class Payload(object):
