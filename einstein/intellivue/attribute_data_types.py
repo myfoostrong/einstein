@@ -94,3 +94,9 @@ class PatDmgState(Packet):
     fields_desc = [
         ShortEnumField("state", 0, {0: "EMPTY", 1: "PRE_ADMITTED", 2: "ADMITTED", 8: "DISCHARGED"})
     ]
+
+class PtBsaFormula(Packet):
+    name = "PtBsaFormula"
+    fields_desc = [
+        ShortEnumField("state", 0, {0: "BSA_FORMULA_UNSPEC", 1: "BSA_FORMULA_BOYD", 2: "BSA_FORMULA_DUBOIS"})
+    ]
