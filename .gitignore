@@ -1,2 +1,5 @@
 /.coverage
 /.pytest_cache
+*.pyc
+requirements.txt
+.idea/*

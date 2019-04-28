@@ -119,7 +119,11 @@ class AttributeList(NonContainerPacket):  # PIPG-39
 
 
 class String(Packet):  # PIPG-39
-    pass  # TODO
+    name = "String"
+    fields_desc = [
+        LenField("length", None),
+        StrField("value", None)
+    ]
 
 
 class VariableLabel(Packet):  # PIPG-40

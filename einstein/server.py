@@ -277,11 +277,81 @@ class IntellivueInterface(DatagramProtocol):
         """
         We have Patient Data! Send appropriate webhooks
         """
-
         for attribute in attribute_list.value:
-            attribute.show()
+            # attribute.show()
+            if attribute.attribute_id == packets.NOM_ATTR_PT_DOB:
+                dob = attribute[packets.AbsoluteTime]
+                dob_string = "%d/%d/%d" % (dob.month, dob.day, dob.year)
+                # print(attribute.value)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_TYPE:
+                patient_type = attribute[packets.PatientType]
+                # print(patient_type)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_BSA:
+                bsa = attribute[packets.PatMeasure].value
+                # print(bsa)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_DEMOG_ST:
+                patient_state = attribute[packets.PatDmgState]
+                # print(patient_state)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_ID:
+                patient_id = attribute[packets.String].value
+                # print(patient_id)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_NAME_FAMILY:
+                family_name = attribute[packets.String].value
+                # print(family_name)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_NAME_GIVEN:
+                given_name = attribute[packets.String].value
+                # print(given_name)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_SEX:
+                sex = attribute[packets.String].value
+                # print(sex)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_AGE:
+                age = attribute[packets.PatMeasure].value
+                # print(age)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_HEIGHT:
+                height = attribute[packets.PatMeasure].value
+                # print(height)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_WEIGHT:
+                weight = attribute[packets.PatMeasure].value
+                # print(weight)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_NOTES1:
+                notes1 = attribute[packets.String].value
+                # print(notes1)
+            elif attribute.attribute_id == packets.NOM_ATTR_PT_NOTES2:
+                notes2 = attribute[packets.String].value
+                # print(notes2)
+            # attribute.show()
 
-    def handleNumericsResult(self, host,  attribute_list):
+        patient = api.Patient(
+            dob=dob_string,
+            patient_type=patient_type,
+            bsa=bsa,
+            patient_state=patient_state,
+            patient_id=patient_id,
+            family_name=family_name,
+            given_name=given_name,
+            sex=sex,
+            age=age,
+            height=height,
+            weight=weight,
+            notes1=notes1,
+            notes2=notes2
+        )
+        print(patient)
+        mac = self.host_to_mac[host]
+
+        payload = api.Payload(
+            monitor_id=mac,
+            datetime=datetime.datetime.now(),
+            observations=patient
+        )
+
+        for subscription in self.subscriptions.values():
+            if subscription.monitor_id == mac:
+                treq.post(subscription.url, data=json.dumps(attr.asdict(payload), default=json_serialize),
+                          headers={b'Content-Type': [b'application/json']})
+
+
+def handleNumericsResult(self, host, attribute_list):
         """
         We have results! Send appropriate webhooks
         """

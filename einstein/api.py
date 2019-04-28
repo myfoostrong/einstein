@@ -24,7 +24,7 @@ class Patient(object):
     dob = attr.ib(default="")
     patient_type = attr.ib(default="")
     bsa = attr.ib(default="")
-    admit_state = attr.ib(default="")
+    patient_state = attr.ib(default="")
     patient_id = attr.ib(default="")
     family_name = attr.ib(default="")
     given_name = attr.ib(default="")
